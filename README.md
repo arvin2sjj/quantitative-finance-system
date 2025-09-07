@@ -5,20 +5,21 @@
 ## 功能特性
 
 - 🚀 **自动数据采集**: 每日定时获取沪深股票成交明细和日线数据
-- 📊 **多数据源支持**: 支持AKShare和Tushare数据源
+- 📊 **多数据源支持**: 支持AKShare和Tushare数据源，智能降级机制
 - 🗄️ **MySQL存储**: 结构化存储股票数据，支持高效查询
 - ⏰ **智能调度**: 基于交易时间的智能任务调度
 - 📝 **完整日志**: 详细的系统日志和错误处理
 - 🔧 **灵活配置**: 支持环境变量配置
 - 📈 **批量导入**: 支持一次性批量导入历史数据
 - 🎯 **进度监控**: 实时显示导入进度和统计信息
+- 🔄 **智能降级**: 自动切换数据源，确保数据获取稳定性
 
 ## 系统架构
 
 ```
 quantitative_finance_system/
 ├── src/                    # 核心模块
-│   ├── data_fetcher.py    # 数据获取模块
+│   ├── data_fetcher.py    # 数据获取模块（支持akshare/tushare）
 │   ├── data_storage.py    # 数据存储模块
 │   ├── scheduler.py       # 任务调度模块
 │   ├── batch_importer.py  # 批量导入模块
@@ -32,7 +33,8 @@ quantitative_finance_system/
 ├── batch_import.py       # 批量导入工具
 ├── requirements.txt      # 依赖包
 ├── config.env.example    # 配置文件示例
-└── BATCH_IMPORT_GUIDE.md # 批量导入使用指南
+├── BATCH_IMPORT_GUIDE.md # 批量导入使用指南
+└── DATA_SOURCE_GUIDE.md  # 数据源配置指南
 ```
 
 ## 数据库表结构
@@ -98,7 +100,10 @@ DB_PASSWORD=your_password
 DB_NAME=quantitative_finance
 
 # 数据源配置
-DATA_SOURCE=akshare
+DATA_SOURCE=akshare  # 可选: akshare, tushare
+
+# Tushare配置（如果使用tushare）
+TUSHARE_TOKEN=your_tushare_token_here
 
 # 日志配置
 LOG_LEVEL=INFO
@@ -191,6 +196,41 @@ python database/init_db.py --drop
 2. **交易时间**: 系统会自动判断交易日和交易时间
 3. **错误处理**: 完善的错误处理和日志记录
 4. **数据完整性**: 支持数据去重和增量更新
+
+## 数据源配置
+
+### 支持的数据源
+
+1. **AKShare** (推荐)
+   - 免费开源数据源
+   - 无需注册，数据丰富
+   - 网络稳定，适合日常使用
+
+2. **Tushare**
+   - 专业金融数据服务
+   - 需要注册获取token
+   - 数据质量高，适合专业分析
+
+### 智能降级机制
+
+系统实现了智能降级机制，确保数据获取的稳定性：
+
+- **Tushare数据源**: Pro API → 旧版API → AKShare
+- **自动切换**: 当主数据源失败时，自动切换到备用数据源
+- **详细日志**: 记录每次降级的原因和过程
+
+### 配置示例
+
+```bash
+# 使用AKShare（免费，推荐）
+DATA_SOURCE=akshare
+
+# 使用Tushare（需要token）
+DATA_SOURCE=tushare
+TUSHARE_TOKEN=your_tushare_token_here
+```
+
+详细配置说明请参考 [数据源配置指南](DATA_SOURCE_GUIDE.md)
 
 ## 监控和维护
 
