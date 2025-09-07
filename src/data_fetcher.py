@@ -329,9 +329,19 @@ class StockDataFetcher:
                 # 重试机制
                 for attempt in range(max_retries):
                     try:
+                        # 转换股票代码格式
+                        if len(symbol) == 6:
+                            # 根据股票代码判断市场
+                            if symbol.startswith(('60', '68', '90')):
+                                ts_code = f"{symbol}.SH"
+                            else:
+                                ts_code = f"{symbol}.SZ"
+                        else:
+                            ts_code = symbol
+                        
                         # 获取日线数据
                         daily_data = self.pro.daily(
-                            ts_code=symbol,
+                            ts_code=ts_code,
                             start_date=start_date,
                             end_date=end_date
                         )
